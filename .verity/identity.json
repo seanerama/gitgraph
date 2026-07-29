@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "name": "GitGraph",
+  "slug": "gitgraph",
+  "owner": "seanerama",
+  "image_prefix": "ghcr.io/seanerama/gitgraph",
+  "locked_at": "2026-07-29T18:29:54.750Z"
+}
