@@ -86,11 +86,18 @@ def test_analyze_url_second_run_fetches_not_reclones_and_picks_up_new_commits(
 
     slug = source._slug_for_url(target)
     cache_dir = workdir / ".gitgraph" / "repos" / slug
-    # A --mirror clone is bare (no .git subdir); its own HEAD file is the
-    # thing to check exists and is reused rather than recreated.
-    head_file = cache_dir / "HEAD"
-    assert head_file.exists()
-    inode_before = head_file.stat().st_ino
+    # A --mirror clone is bare (no .git subdir); confirm it exists.
+    assert (cache_dir / "HEAD").exists()
+    # Check the *directory's own* inode, not a file inside it: `git fetch`
+    # can atomically rewrite individual ref files (write-temp-then-rename),
+    # which changes THEIR inode even on a legitimate fetch — that's not a
+    # reliable signal and is git-version/filesystem dependent (this exact
+    # check against HEAD's own inode passed locally but flaked in CI). The
+    # containing directory's inode is untouched by any file-level rewrite
+    # inside it; only a genuine delete-and-reclone (e.g. a naive
+    # `rm -rf` + `git clone` "cache invalidation") would recreate the
+    # directory itself.
+    inode_before = cache_dir.stat().st_ino
 
     # Add a new commit to the "remote" between runs.
     (work / "new.txt").write_text("more content\n")
@@ -102,7 +109,7 @@ def test_analyze_url_second_run_fetches_not_reclones_and_picks_up_new_commits(
     assert cli_main(["analyze", target, "--db", str(db_path)]) == 0
 
     # Cache dir was reused (fetch), not recreated (re-clone).
-    inode_after = head_file.stat().st_ino
+    inode_after = cache_dir.stat().st_ino
     assert inode_after == inode_before
 
     conn = sqlite3.connect(str(db_path))
