@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GitGraph</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #1a1a1a;
+    }
+    h1 { margin-bottom: 0.1rem; }
+    #repo-path { color: #666; font-size: 0.9rem; word-break: break-all; }
+    #summary {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+    }
+    .stat {
+      background: #f4f4f5;
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      min-width: 120px;
+    }
+    .stat .value { font-size: 1.5rem; font-weight: 600; }
+    .stat .label {
+      font-size: 0.75rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    #commits { list-style: none; padding: 0; }
+    #commits li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 0.95rem;
+    }
+    #commits code {
+      font-size: 0.85rem;
+      color: #555;
+      background: #f4f4f5;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+    }
+    #error { color: #b00020; white-space: pre-wrap; }
+    .note { color: #888; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>GitGraph</h1>
+  <p id="repo-path">loading&hellip;</p>
+
+  <div id="summary"></div>
+
+  <h2>Recent commits</h2>
+  <p class="note">Plain list for now — the interactive D3 commit graph is a later stage.</p>
+  <ul id="commits"></ul>
+
+  <p id="error"></p>
+
+  <script src="/app.js"></script>
+</body>
+</html>
