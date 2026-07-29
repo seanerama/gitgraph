@@ -27,4 +27,4 @@ gitgraph = "gitgraph.cli:main"
 include = ["gitgraph*"]
 
 [tool.setuptools.package-data]
-gitgraph = ["web/*.html", "web/*.js"]
+gitgraph = ["web/*.html", "web/*.js", "web/vendor/*.js"]

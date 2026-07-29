@@ -33,21 +33,38 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    #commits { list-style: none; padding: 0; }
-    #commits li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #e5e5e5;
-      font-size: 0.95rem;
-    }
-    #commits code {
-      font-size: 0.85rem;
-      color: #555;
-      background: #f4f4f5;
-      padding: 0.1rem 0.35rem;
-      border-radius: 4px;
-    }
     #error { color: #b00020; white-space: pre-wrap; }
     .note { color: #888; font-size: 0.85rem; }
+
+    #graph {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      background: #fff;
+    }
+    #graph svg { display: block; }
+    .edge-normal { fill: none; stroke: #9aa0a6; stroke-width: 1.5px; }
+    .edge-merge { fill: none; stroke: #d97706; stroke-width: 1.5px; stroke-dasharray: 4 3; }
+    .commit-node { fill: #2563eb; stroke: #fff; stroke-width: 1px; cursor: pointer; }
+    .commit-node-hover { fill: #1d4ed8; r: 7; }
+    #graph-note { color: #888; font-size: 0.85rem; }
+
+    #tooltip {
+      position: fixed;
+      z-index: 10;
+      max-width: 320px;
+      background: #1a1a1a;
+      color: #f4f4f5;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+    #tooltip[hidden] { display: none; }
+    .tooltip-subject { font-weight: 600; margin-bottom: 0.25rem; }
   </style>
 </head>
 <body>
@@ -56,12 +73,16 @@
 
   <div id="summary"></div>
 
-  <h2>Recent commits</h2>
-  <p class="note">Plain list for now — the interactive D3 commit graph is a later stage.</p>
-  <ul id="commits"></ul>
+  <h2>Commit graph</h2>
+  <p id="graph-note" class="note" hidden></p>
+  <div id="graph"></div>
 
   <p id="error"></p>
 
+  <div id="tooltip" hidden></div>
+
+  <script src="/vendor/d3.v7.min.js"></script>
   <script src="/app.js"></script>
+  <script src="/graph.js"></script>
 </body>
 </html>

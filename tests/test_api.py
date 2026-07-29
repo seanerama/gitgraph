@@ -142,6 +142,45 @@ def test_index_page_served(analyzed_fixture):
     assert "/api/summary" in js_resp.text
 
 
+# --- Stage 4: D3 commit-graph static assets --------------------------------
+
+
+def test_index_page_no_longer_has_placeholder_commit_list(analyzed_fixture):
+    """Stage 2's plain <ul id="commits"> placeholder must be actually
+    swapped out for the D3 graph panel, not left dead in the DOM alongside
+    it."""
+    repo, info, db_path = analyzed_fixture
+    client = TestClient(create_app(db_path))
+
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert '<ul id="commits">' not in resp.text
+    # the new graph container should be present in its place
+    assert 'id="graph"' in resp.text
+
+
+def test_vendored_d3_is_served(analyzed_fixture):
+    repo, info, db_path = analyzed_fixture
+    client = TestClient(create_app(db_path))
+
+    resp = client.get("/vendor/d3.v7.min.js")
+    assert resp.status_code == 200
+    assert "javascript" in resp.headers["content-type"].lower()
+    # sanity: a real D3 v7 bundle, not an empty stub
+    assert len(resp.content) > 100_000
+    assert b"d3" in resp.content
+
+
+def test_graph_js_is_served(analyzed_fixture):
+    repo, info, db_path = analyzed_fixture
+    client = TestClient(create_app(db_path))
+
+    resp = client.get("/graph.js")
+    assert resp.status_code == 200
+    assert "javascript" in resp.headers["content-type"].lower()
+    assert "/api/commits" in resp.text
+
+
 # --- ADR 0002: bind 127.0.0.1 only, never 0.0.0.0 --------------------------
 
 
