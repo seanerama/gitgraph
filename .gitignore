@@ -5,6 +5,14 @@ dist/
 .env
 .env.*
 !.env.*.example
+# Python (gitgraph package)
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.gitgraph/
+*.db
 # Verity's derived state cache — never authoritative (framework-spec §5)
 .verity-cache/
 # Per-app deployment access (host + credential locations) — shared out-of-band,

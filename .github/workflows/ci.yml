@@ -1,8 +1,8 @@
 name: CI
-# GitGraph — Verity hygiene gate (stack-agnostic).
-# Honestly green on a fresh scaffold: secret-scan + a structure check, no faked
-# pass. Lint and test gates are added when the Architect chooses the stack and the
-# walking skeleton lands (the progressive gate — framework-spec §3).
+# GitGraph — Verity hygiene gate (stack-agnostic) + the Python test suite.
+# Honestly green: secret-scan + a structure check, no faked pass, plus a real
+# pytest run now that the walking skeleton (Stage 1: commit-store extractor)
+# has landed (the progressive gate — framework-spec §3).
 on:
   pull_request:
   push:
@@ -34,3 +34,19 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gitgraph (+ dev deps)
+        run: pip install -e ".[dev]"
+      - name: Configure git identity for fixture-repo tests
+        run: |
+          git config --global user.name "GitGraph CI"
+          git config --global user.email "ci@gitgraph.local"
+          git config --global init.defaultBranch main
+      - name: Run test suite
+        run: pytest -q
