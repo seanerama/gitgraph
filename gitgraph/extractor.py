@@ -280,11 +280,25 @@ def get_head_sha(repo_path: Path) -> str:
     return _run_git(repo_path, ["rev-parse", "HEAD"]).stdout.strip()
 
 
-def analyze(repo_path: str | Path, db_path: str | Path) -> int:
+def analyze(
+    repo_path: str | Path,
+    db_path: str | Path,
+    *,
+    display_identity: str | None = None,
+) -> int:
     """Run a full extraction of `repo_path` into the commit-store SQLite
     file at `db_path`, replacing all commits/commit_parents/refs/
-    file_changes rows. Returns the number of commits written."""
+    file_changes rows. Returns the number of commits written.
+
+    `repo_path` is always the local filesystem path git commands are run
+    against. `display_identity`, if given, is what gets recorded in
+    `meta.repo_path` instead of `repo_path` itself — used by the CLI (per
+    ADR 0003) when the original `analyze` target was a URL: the local
+    clone-cache path is still what's operated on, but the URL is what's
+    stored, so a URL-sourced db stays self-describing. Defaults to
+    `str(repo_path.resolve())`, i.e. today's behavior, when not given."""
     repo_path = Path(repo_path).resolve()
+    recorded_path = display_identity if display_identity is not None else str(repo_path)
     commits = extract_commits_meta(repo_path)
     file_changes_by_sha = extract_file_changes(repo_path)
     refs = extract_refs(repo_path)
@@ -369,7 +383,7 @@ def analyze(repo_path: str | Path, db_path: str | Path) -> int:
                     gitgraph_version = excluded.gitgraph_version,
                     scc_version = excluded.scc_version
                 """,
-                (str(repo_path), head_sha, extracted_at, GITGRAPH_VERSION),
+                (recorded_path, head_sha, extracted_at, GITGRAPH_VERSION),
             )
     finally:
         conn.close()

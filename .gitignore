@@ -12,6 +12,10 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .gitgraph/
+# URL-target clone cache (ADR 0003) — a separate, larger category of local
+# state than the per-repo .db files above; called out on its own so it's
+# clear what's accumulating on disk.
+.gitgraph/repos/
 *.db
 # Verity's derived state cache — never authoritative (framework-spec §5)
 .verity-cache/
