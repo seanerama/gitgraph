@@ -1,8 +1,9 @@
 // Minimal vanilla-JS shell (no build step, no framework — ADR 0001) that
-// fetches /api/summary and /api/commits on load and renders the summary
-// numbers plus a plain <ul> of recent commits. This is explicitly NOT the
-// D3 commit graph — that's a separate later stage; this just proves the
-// browser round-trip against the real dashboard-api.
+// fetches /api/summary on load and renders the summary stat panel. The
+// commit-list rendering that used to live here (a plain <ul>, explicitly a
+// placeholder) has been superseded by the interactive D3 commit graph —
+// see graph.js, which fetches /api/commits itself and owns the #graph
+// panel.
 
 async function fetchJSON(url) {
   const resp = await fetch(url);
@@ -51,36 +52,10 @@ function renderSummary(summary) {
   }
 }
 
-function renderCommits(nodes) {
-  const list = document.getElementById("commits");
-  list.innerHTML = "";
-  const recent = nodes.slice(0, 20);
-  if (recent.length === 0) {
-    const li = document.createElement("li");
-    li.textContent = "No commits found.";
-    list.appendChild(li);
-    return;
-  }
-  for (const node of recent) {
-    const li = document.createElement("li");
-
-    const sha = document.createElement("code");
-    sha.textContent = node.sha.slice(0, 7);
-
-    li.appendChild(sha);
-    li.appendChild(document.createTextNode(` ${node.subject} — ${node.author_name}`));
-    list.appendChild(li);
-  }
-}
-
 async function main() {
   try {
-    const [summary, commits] = await Promise.all([
-      fetchJSON("/api/summary"),
-      fetchJSON("/api/commits"),
-    ]);
+    const summary = await fetchJSON("/api/summary");
     renderSummary(summary);
-    renderCommits(commits.nodes);
   } catch (err) {
     document.getElementById("error").textContent = `Failed to load dashboard data: ${err.message}`;
   }
