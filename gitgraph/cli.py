@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from . import extractor
+from . import source
 
 # ADR 0002 (defer remote deployment target): gitgraph serve is local-only,
 # no auth. Bind is hardcoded to loopback and is NOT exposed as a CLI flag —
@@ -27,7 +28,14 @@ def build_parser() -> argparse.ArgumentParser:
     analyze_parser = subparsers.add_parser(
         "analyze", help="Extract commit history from a git repo into a commit-store SQLite db"
     )
-    analyze_parser.add_argument("repo_path", help="Path to the git repository to analyze")
+    analyze_parser.add_argument(
+        "target",
+        help=(
+            "Path to a local git repository, or a Git URL to clone/fetch and "
+            "analyze (https://, http://, git://, or git@host:owner/repo.git "
+            "SSH syntax — see ADR 0003)"
+        ),
+    )
     analyze_parser.add_argument(
         "--db",
         default=None,
@@ -83,17 +91,24 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "analyze":
-        repo_path = Path(args.repo_path).resolve()
+        try:
+            repo_path, display_identity = source.resolve_target(args.target)
+        except extractor.GitError as exc:
+            print(f"gitgraph: {exc}", file=sys.stderr)
+            return 1
+        # Sanity check against the *resolved* local path — still a real
+        # safety net after a clone/fetch, in case it silently produced a
+        # non-repo dir.
         if not (repo_path / ".git").exists() and not (repo_path / "HEAD").exists():
             print(f"gitgraph: {repo_path} does not look like a git repository", file=sys.stderr)
             return 1
         db_path = Path(args.db) if args.db else default_db_path(repo_path)
         try:
-            count = extractor.analyze(repo_path, db_path)
+            count = extractor.analyze(repo_path, db_path, display_identity=display_identity)
         except extractor.GitError as exc:
             print(f"gitgraph: {exc}", file=sys.stderr)
             return 1
-        print(f"gitgraph: wrote {count} commits from {repo_path} to {db_path}")
+        print(f"gitgraph: wrote {count} commits from {display_identity} to {db_path}")
         return 0
 
     if args.command == "serve":
